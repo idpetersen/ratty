@@ -19,6 +19,7 @@ class CLIENT:
         
     def main_loop(self):
         while True:
+        
             command = sock.recv(1024).decode()   
                 
             if command == 'shell':
