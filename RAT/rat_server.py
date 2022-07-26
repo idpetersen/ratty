@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 
 
+
 class SERVER:
     # initialize the server
     def __init__(self, host, port):
@@ -263,9 +264,6 @@ class SERVER:
 
 # setting host port and ip to construct with the server class
 rat = SERVER('0.0.0.0', 3312)
-
-# setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 4450)
 
 
 if __name__ == '__main__':
