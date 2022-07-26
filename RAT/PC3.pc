@@ -1,12 +1,6 @@
-port: 4209
+port: 4050
 PC3
 user1
 192.168.56.115
 192.168.56.0/24
 192.168.56.115 - Make a list
-
-
-Hydra attempted:yes
-password: rockyou!\n[STATUS] 90.33 tries/min, 271 tries in 00:03h, 2 to do in 00:01h, 7 active
-Hydra attempted:yes
-password: rockyou!

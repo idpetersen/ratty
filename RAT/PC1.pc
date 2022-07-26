@@ -1,0 +1,9 @@
+port: 4062
+PC1
+user1
+192.168.56.112
+192.168.56.0/24
+192.168.56.115 - Make a list
+
+Hydra attempted:yes
+password: rockyou!

